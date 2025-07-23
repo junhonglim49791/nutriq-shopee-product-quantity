@@ -1,5 +1,4 @@
 import pandas as pd
-from openpyxl import load_workbook
 
 from datetime import datetime, timedelta
 
@@ -54,6 +53,11 @@ def get_processed_income_released_df(income_released_file_path):
         by=("Order Info", "Unnamed: 6_level_1", "Order Creation Date")
     )
     return sorted_final_income_df
+
+
+def get_income_released_order_ids(processed_income_released_df):
+    order_ids_header = ("Order Info", "Unnamed: 2_level_1", "Order ID")
+    return processed_income_released_df[order_ids_header]
 
 
 """Get list of tuples. where tuple('MM', [list of unique dates])"""

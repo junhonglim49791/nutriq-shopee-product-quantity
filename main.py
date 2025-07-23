@@ -14,6 +14,7 @@ from income_released_process import (
     get_processed_income_released_df,
     get_required_order_completed_filename,
     get_unique_year_month_list,
+    get_income_released_order_ids,
 )
 
 from order import (
@@ -22,6 +23,8 @@ from order import (
     get_order_completed_error_message,
     show_more_than_required_files_number,
 )
+
+from order_process_for_product_qty import get_order_completed_df, get_product_quantity
 
 from print import print_uploaded_file
 
@@ -123,7 +126,21 @@ def main():
     print_uploaded_file(all_files_order_completed_folder)
 
     # Use the required completed order filenames to process, since it is sorted, to use the latest month as the base df
-    print(required_completed_order_filenames)
+    completed_order_filepaths_list = [
+        os.path.join(order_completed_dir, file)
+        for file in required_completed_order_filenames
+    ]
+
+    #  get income_released_order_ids
+    income_released_order_ids = get_income_released_order_ids(
+        processed_income_released_df
+    )
+
+    procssed_order_completed_df = get_order_completed_df(
+        completed_order_filepaths_list, income_released_order_ids
+    )
+
+    get_product_quantity(procssed_order_completed_df)
 
 
 if __name__ == "__main__":
