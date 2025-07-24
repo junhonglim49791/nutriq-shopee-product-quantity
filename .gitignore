@@ -9,10 +9,9 @@ wheels/
 # Virtual environments
 .venv
 
-.python-version
+# My testing/generated files
 *.txt
 *.xlsx
-uv.lock
 test.py
 example_save_formatting.py
 *.Identifier
