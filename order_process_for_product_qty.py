@@ -14,13 +14,13 @@ def get_order_completed_df(order_completed_filepath_list, income_released_order_
         order_completed_df = pd.read_excel(
             order_completed, sheet_name="orders", header=0
         )
-        """Example
+        """Only remove refunded orders in Order.completed excel file. Example:
             Order ID 2505065PU181Y4 has 2 items in Order.completed excel file:
                 COLD_PACK_STRAP	    Black Strap Only
                 COLD_PACK_6INCHES	Blue 6 Inches
             
             Say if COLD_PACK_STRAP is refunded, in the Income.released excel file, 2505065PU181Y4 will have a refund id. If this order id is removed because 
-            'refund id' column is not nan (in Income.released), then wont be able to find the remaining orders in Order.completed.
+            'refund id' column in Income.released, then wont be able to find the remaining orders in Order.completed.
 
             Remove refunded orders in Order.completed, as each unique item with the same Order ID has different rows. Can safely remove the data rows which are
             refunded
@@ -63,7 +63,38 @@ def get_order_completed_df(order_completed_filepath_list, income_released_order_
 
 
 def get_product_quantity(merged_order_completed):
-    natsort_func = natsort_keygen(alg=ns.IGNORECASE | ns.PATH)
+    """Sorting
+    natural sort, where digits and text are sorted in a way that make sense to human. Example after sorted:
+
+        COLD_PACK_90GRM	    C (90gram) [Insulin]
+        COLD_PACK_280GRM	B (280gram)
+        COLD_PACK_600GRM	A (600gram)
+
+    Sort by numbers 90, 280, 600. But why C B A doesnt get sorted? Because .sort_values() act in priority order.
+    .sort_values(
+            [
+                "Product Name",
+                "SKU Reference No.",
+                "Variation Name",
+            ]
+
+    Means that sort by product name, when no order to sort -> sort by sku, if there is a tie -> sort by variation name.
+
+    ns.IGNORECASE make the sorting case-insensitive so that, if not order would be affected. Example:
+
+        FORA ....
+        Finger ....
+
+    this happens because in ASCII, "O" (79) which is smaller than "i" (105)
+
+    Why replace _ ?
+    For case like:
+        MULTI100
+        MULTI_30
+
+    The sort just don't work properly without removing underscore
+    """
+    natsort_func = natsort_keygen(alg=ns.IGNORECASE)
 
     remove_underscore = lambda s: s.replace("_", "")
 
