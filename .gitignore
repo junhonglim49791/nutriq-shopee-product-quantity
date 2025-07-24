@@ -14,3 +14,4 @@ wheels/
 *.xlsx
 uv.lock
 test.py
+*.Identifier

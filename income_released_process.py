@@ -35,11 +35,7 @@ def get_processed_income_released_df(income_released_file_path):
     # Check empty cells have 'nan' or "" as value
     # print(removed_sku_rows_df[("Order Info", "Unnamed: 3_level_1", "refund id")].unique())
 
-    removed_refunded_rows_df = removed_sku_rows_df.loc[
-        removed_sku_rows_df[("Order Info", "Unnamed: 3_level_1", "refund id")].isna()
-    ]
-
-    final_income_df = removed_refunded_rows_df.loc[
+    final_income_df = removed_sku_rows_df.loc[
         :,
         [
             ("Order Info", "Unnamed: 1_level_1", "View By"),
