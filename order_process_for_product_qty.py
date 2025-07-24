@@ -236,4 +236,6 @@ def save_product_quantity(
             cell.fill = light_blue_fill
             cell.font = bold_font
 
-    wb.save(f"Product.quantity.{income_released_filename}.xlsx")
+    product_qty_filename = f"Product.quantity.{income_released_filename}.xlsx"
+    wb.save(product_qty_filename)
+    return product_qty_filename

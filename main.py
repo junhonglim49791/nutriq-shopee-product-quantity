@@ -31,7 +31,7 @@ from order_process_for_product_qty import (
     save_product_quantity,
 )
 
-from print import print_uploaded_file
+from print import print_uploaded_file, print_generated_product_qty_file
 
 
 def is_dir_empty(path):
@@ -167,9 +167,11 @@ def main():
         any1_order_completed_filepath
     )
 
-    save_product_quantity(
+    product_qty_filename = save_product_quantity(
         order_completed_format_dict, product_qty_df, income_released_filename
     )
+
+    print_generated_product_qty_file(product_qty_filename)
 
 
 if __name__ == "__main__":

@@ -14,5 +14,6 @@ wheels/
 *.xlsx
 uv.lock
 test.py
+example_save_formatting.py
 *.Identifier
 challenges.md

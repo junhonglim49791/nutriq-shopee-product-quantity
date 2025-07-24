@@ -17,16 +17,25 @@ def print_error_message_panel(main_msg, subtext=""):
     )
 
 
-def print_uploaded_file(file_list):
-    uploaded_file = "\n".join([f"📤 {file}" for file in file_list])
+def print_success_message_pannel(main_msg):
     console.print(
         Panel(
-            f"[bold green]{uploaded_file}[/bold green]",
-            title="[green]Uploaded[/green]",
+            f"[bold green]{main_msg}[/bold green]",
+            title="[green]SUCCESS[/green]",
             border_style="Green",
             expand=True,
         )
     )
+
+
+def print_uploaded_file(file_list):
+    uploaded_file = "\n".join([f"⬆️  {file}" for file in file_list])
+    print_success_message_pannel(uploaded_file)
+
+
+def print_generated_product_qty_file(filename):
+    main_msg = "⬇️  " + filename + "is generated"
+    print_success_message_pannel(main_msg)
 
 
 def print_income_released_format_info():
