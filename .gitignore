@@ -10,10 +10,6 @@ wheels/
 .venv
 
 # My testing/generated files
-*.txt
-*.xlsx
-test.py
-example_save_formatting.py
-*.Identifier
 challenges.md
 checked/
+test_files/

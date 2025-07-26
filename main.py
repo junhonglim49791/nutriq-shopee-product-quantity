@@ -34,7 +34,6 @@ from order_process_for_product_qty import (
 from print import (
     print_uploaded_file,
     print_generated_product_qty_file,
-    print_required_order_completed_filenames,
 )
 
 
@@ -78,12 +77,6 @@ def main():
         )
         return
 
-    # if not income_released_file.endswith("xlsx"):
-    #     get_income_released_error_message(
-    #         IncomeReleasedFileErrorMessages.WRONG_EXT, extension
-    #     )
-    #     return
-
     if not is_excel(income_released_file_path):
         get_income_released_error_message(
             IncomeReleasedFileErrorMessages.NOT_EXCEL, extension
@@ -123,15 +116,12 @@ def main():
         all_files_order_completed_folder, required_completed_order_filenames
     )
 
-    if len(all_files_order_completed_folder) > len(required_completed_order_filenames):
-        show_more_than_required_files_number(len(required_completed_order_filenames))
-        print_required_order_completed_filenames(required_completed_order_filenames)
-        return
-
     if not is_order_completed_filename_correct(
         all_files_order_completed_folder, required_completed_order_filenames
     ):
-        get_order_completed_error_message(required_file_exists)
+        get_order_completed_error_message(
+            required_file_exists, len(all_files_order_completed_folder)
+        )
         return
 
     # Correct order_completed file is uploaded, start processing

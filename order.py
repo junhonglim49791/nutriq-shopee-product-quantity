@@ -24,12 +24,26 @@ def which_filename_is_correct(
     return sorted(list(required_file_exists.items()))
 
 
-def get_order_completed_error_message(required_file_exists):
+def get_order_completed_error_message(required_file_exists, uploaded_files_number):
+
     is_file_exist = [not t[1] for t in required_file_exists]
-    show_warning = any(is_file_exist)
-    if show_warning:
-        main_msg = "Please upload the correct file(s) to order_completed folder"
-        print_error_message_panel(main_msg)
+    missing_file = any(is_file_exist)
+
+    missing_file_msg = ""
+    too_many_files_msg = ""
+    subtext = ""
+
+    if missing_file:
+        missing_file_msg = (
+            "Please upload the correct file(s) to order_completed folder. "
+        )
+
+    if uploaded_files_number > len(required_file_exists):
+        too_many_files_msg = "Too many files are uploaded."
+        subtext = f"Please upload only [bold italic yellow]{len(required_file_exists)}[/bold italic yellow] file(s)"
+
+    main_msg = missing_file_msg + too_many_files_msg
+    print_error_message_panel(main_msg, subtext)
 
     required_file_text = ""
     for index, (file, is_file_exist) in enumerate(required_file_exists):
