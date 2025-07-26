@@ -113,7 +113,7 @@ def main():
         all_files_order_completed_folder, required_completed_order_filenames
     )
 
-    # Check whether the requirement amount and exact filenames are uploaded
+    # Check whether the required amount and exact filenames of excel are uploaded
     if not is_order_completed_filename_correct(
         all_files_order_completed_folder, required_completed_order_filenames
     ):
@@ -147,6 +147,7 @@ def main():
         any1_order_completed_filepath
     )
 
+    # Save to current directory
     product_qty_filename = save_product_quantity(
         order_completed_format_dict, product_qty_df, income_released_filename
     )

@@ -10,6 +10,7 @@ from print import (
 )
 
 
+# Expected the Income.released file should be within 15 days range of a month
 def is_month_split_in_halves(filename):
     dates_list = re.findall(r"\d{8}", filename)
     start_date, end_date = dates_list
@@ -22,7 +23,7 @@ def is_month_split_in_halves(filename):
 
     if not same_month_year:
         return False
-
+    # the date range should be something like: 20250101_20250115 or 20250116_20250131
     expected_month_halves = {"first_half": (1, 15), "second_half": (16, days_in_month)}
     given_month_halve = (start_date_obj.day, end_date_obj.day)
 
