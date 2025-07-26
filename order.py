@@ -1,6 +1,8 @@
-from print import print_error_message_panel, print_order_completed_file_match_error
+from print import print_error_message_panel, print_order_completed_file_info
 
 
+# all_files_order_completed_folder -> list of filenames in order_completed/
+# required_order_completed_files -> list of filenames that are required, after processing the uploaded Income.released file
 def is_order_completed_filename_correct(
     all_files_order_completed_folder, required_order_completed_files
 ):
@@ -12,13 +14,14 @@ def is_order_completed_filename_correct(
 def which_filename_is_correct(
     all_files_order_completed_folder, required_order_completed_files
 ):
+
     required_file_exists = {file: False for file in required_order_completed_files}
 
     for uploaded in all_files_order_completed_folder:
         if uploaded in required_order_completed_files:
             required_file_exists[uploaded] = True
 
-    return list(required_file_exists.items())
+    return sorted(list(required_file_exists.items()))
 
 
 def get_order_completed_error_message(required_file_exists):
@@ -33,12 +36,12 @@ def get_order_completed_error_message(required_file_exists):
         endline = "\n" if index != len(required_file_exists) - 1 else ""
 
         required_file_text += (
-            file + ".........." + "✅" + endline
+            "[cyan]" + file + "[/cyan]" + ".........." + "✅" + endline
             if is_file_exist
-            else file + ".........." + "❌" + endline
+            else "[cyan]" + file + "[/cyan]" + ".........." + "❌" + endline
         )
 
-    print_order_completed_file_match_error(required_file_text)
+    print_order_completed_file_info(required_file_text)
 
 
 def show_more_than_required_files_number(required_file_number):

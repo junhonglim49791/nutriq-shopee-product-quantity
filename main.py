@@ -31,7 +31,11 @@ from order_process_for_product_qty import (
     save_product_quantity,
 )
 
-from print import print_uploaded_file, print_generated_product_qty_file
+from print import (
+    print_uploaded_file,
+    print_generated_product_qty_file,
+    print_required_order_completed_filenames,
+)
 
 
 def is_dir_empty(path):
@@ -95,6 +99,7 @@ def main():
         get_income_released_error_message(
             IncomeReleasedFileErrorMessages.INCOME_RELEASED_INCORRECT_RANGE
         )
+        return
 
     # Correct income_released file is uploaded, start processing
     print_uploaded_file(all_files_income_released_folder)
@@ -112,53 +117,37 @@ def main():
 
     order_completed_dir = "order_completed"
     all_files_order_completed_folder = get_all_files_in_a_dir(order_completed_dir)
+    required_file_exists = which_filename_is_correct(
+        all_files_order_completed_folder, required_completed_order_filenames
+    )
 
     if len(all_files_order_completed_folder) > len(required_completed_order_filenames):
         show_more_than_required_files_number(len(required_completed_order_filenames))
+        print_required_order_completed_filenames(required_completed_order_filenames)
         return
 
     if not is_order_completed_filename_correct(
         all_files_order_completed_folder, required_completed_order_filenames
     ):
-
-        required_file_exists = which_filename_is_correct(
-            all_files_order_completed_folder, required_completed_order_filenames
-        )
         get_order_completed_error_message(required_file_exists)
         return
 
     # Correct order_completed file is uploaded, start processing
     print_uploaded_file(all_files_order_completed_folder)
 
-    # Use the required completed order filenames to process, since it is sorted, to use the latest month as the base df
     completed_order_filepaths_list = [
         os.path.join(order_completed_dir, file)
         for file in all_files_order_completed_folder
     ]
 
-    #  get income_released_order_ids
     income_released_order_ids = get_income_released_order_ids(
         processed_income_released_df
     )
 
-    # print(list(income_released_order_ids))
-    # print("2505065PU181Y4" in list(income_released_order_ids))
-
     processed_order_completed_df = get_order_completed_df(
         completed_order_filepaths_list, income_released_order_ids
     )
-    # print(
-    #     processed_order_completed_df[
-    #         (processed_order_completed_df["SKU Reference No."] == "COLD_PACK_STRAP")
-    #         & (processed_order_completed_df["Quantity"] == 2)
-    #     ]
-    # )
 
-    # print(
-    #     processed_order_completed_df[
-    #         processed_order_completed_df["SKU Reference No."] == "NOVAMULTI_30"
-    #     ]
-    # )
     product_qty_df = get_product_quantity(processed_order_completed_df)
 
     any1_order_completed_filepath = completed_order_filepaths_list[0]

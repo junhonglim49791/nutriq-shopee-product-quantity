@@ -70,7 +70,7 @@ def print_income_released_date_range_error():
     )
 
 
-def print_order_completed_file_match_error(required_file_text):
+def print_order_completed_file_info(required_file_text):
     console.print(
         Panel(
             required_file_text,
@@ -79,3 +79,14 @@ def print_order_completed_file_match_error(required_file_text):
             expand=True,
         )
     )
+
+
+def print_required_order_completed_filenames(required_completed_order_filenames):
+    required_completed_order_filenames_str = "\n".join(
+        [
+            "[cyan]" + filename + "[/cyan]"
+            for filename in required_completed_order_filenames
+        ]
+    )
+
+    print_order_completed_file_info(required_completed_order_filenames_str)

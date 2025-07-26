@@ -197,7 +197,6 @@ def save_product_quantity(
         ]
 
     cell_bottom_underline = Border(bottom=Side(style="thin"))
-    cell_top_underline = Border(top=Side(style="thin"))
 
     for r_id, row_data_tuple in enumerate(
         product_qty_df.itertuples(index=False), start=2

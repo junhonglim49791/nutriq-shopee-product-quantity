@@ -124,6 +124,12 @@ def get_required_order_completed_filename(unique_year_month_list):
         date_before30days_from_current_year_month = (
             date_before30days_from_current_year_month_end_date.strftime("%Y-%m")
         )
+
+        # print(
+        #     "Date before 30 days: ",
+        #     date_before30days_from_current_year_month_end_date_str,
+        # )
+
         # if is within the current month, no need to find new start date from previous month because there is already 30 days orders data in this month
         if date_before30days_from_current_year_month == current_year_month_str:
             continue
@@ -143,6 +149,7 @@ def get_required_order_completed_filename(unique_year_month_list):
             new_index_current_month_start_date = prev_month_dates_list.index(
                 date_before30days_from_current_year_month_end_date_str
             )
+            # print("in list")
         else:
             # Check whether there is a date from previous month which is later than the date_before30days_from_current_year_month_end_date_str.
             # This means that I can take that date as a new start date for current month
@@ -152,14 +159,19 @@ def get_required_order_completed_filename(unique_year_month_list):
             and in '2025-04', ['2025-04-25', '2025-04-26', '2025-04-27'(imagine is here for explanation),'2025-04-28'],
             Since '2025-04-28' is in the 30 days range, '2025-04-26' is out of 30 days range. So user should download from '2025-04-28, instead of '2025-05-01'
             """
+            # print("NOT in list")
             for i, date in enumerate(prev_month_dates_list):
                 if date > date_before30days_from_current_year_month_end_date_str:
                     new_index_current_month_start_date = i
+                    # Stop the lost, only the next date is needed, if not index every date that is later than date_before30days will be set to new_index
+                    break
 
         # Just skip if there is no date within the range of date_before30days_from_current_year_month_end_date_str to current month's end date,
         if new_index_current_month_start_date is None:
             continue
-
+        # print("Before slice (current_month): ", current_year_month_dates_list)
+        # print("Before slice (previous_month): ", prev_month_dates_list)
+        # print("New index: ", new_index_current_month_start_date)
         """Example
         if in '2025-05' , ['2025-05-01', ... '2025-05-27'] <--- last date in May,
         '2025-04-27' is date_before30days_from_current_year_month_end_date_str,
@@ -180,6 +192,8 @@ def get_required_order_completed_filename(unique_year_month_list):
             :new_index_current_month_start_date
         ]
 
+        # print("After slice: ", current_year_month_dates_list)
+        # print("After slice: ", prev_month_dates_list)
     completed_order_filenames = []
     for year_month, datelist in unique_year_month_list:
         if len(datelist) != 0:
