@@ -1,8 +1,5 @@
 import os
 
-import pandas as pd
-from openpyxl import load_workbook
-
 from income_released import (
     get_income_released_error_message,
     is_month_split_in_halves,
@@ -47,6 +44,7 @@ def get_all_files_in_a_dir(dir):
     return all_files_order_completed_folder
 
 
+# Use excel's binary to check whether a file is in .xlsx format
 def is_excel(path):
     with open(path, "rb") as f:
         first_n_bytes = 4
@@ -89,25 +87,25 @@ def main():
         )
         return
 
+    # Evoice is done for every 2 weeks, so expecting the Income.released excel file also in the correct date range
     if not is_month_split_in_halves(income_released_filename):
         get_income_released_error_message(
             IncomeReleasedFileErrorMessages.INCOME_RELEASED_INCORRECT_RANGE
         )
         return
 
-    # Correct income_released file is uploaded, start processing
     print_uploaded_file(all_files_income_released_folder)
 
     processed_income_released_df = get_processed_income_released_df(
         income_released_file_path
     )
 
+    # Get the required filenames for Order.completed, based on shopee's limitation which allows only maximum 30 days range download
     unique_year_month_list = get_unique_year_month_list(processed_income_released_df)
 
     required_completed_order_filenames = get_required_order_completed_filename(
         unique_year_month_list
     )
-    # print(completed_order_filenames)
 
     order_completed_dir = "order_completed"
     all_files_order_completed_folder = get_all_files_in_a_dir(order_completed_dir)
@@ -115,6 +113,7 @@ def main():
         all_files_order_completed_folder, required_completed_order_filenames
     )
 
+    # Check whether the requirement amount and exact filenames are uploaded
     if not is_order_completed_filename_correct(
         all_files_order_completed_folder, required_completed_order_filenames
     ):
@@ -123,7 +122,6 @@ def main():
         )
         return
 
-    # Correct order_completed file is uploaded, start processing
     print_uploaded_file(all_files_order_completed_folder)
 
     completed_order_filepaths_list = [
@@ -135,12 +133,14 @@ def main():
         processed_income_released_df
     )
 
+    # Get the orders that are paid by shopee from Order.completed because it has the 'Quantity' column for stock counting
     processed_order_completed_df = get_order_completed_df(
         completed_order_filepaths_list, income_released_order_ids
     )
 
     product_qty_df = get_product_quantity(processed_order_completed_df)
 
+    # Order.completed has the same format, just choose any one to copy the header and data rows format to generate Procut.quantity excel file later
     any1_order_completed_filepath = completed_order_filepaths_list[0]
 
     order_completed_format_dict = get_order_completed_format(
