@@ -78,14 +78,16 @@ def main():
         )
         return
 
-    if not income_released_file.endswith("xlsx"):
-        get_income_released_error_message(
-            IncomeReleasedFileErrorMessages.WRONG_EXT, extension
-        )
-        return
+    # if not income_released_file.endswith("xlsx"):
+    #     get_income_released_error_message(
+    #         IncomeReleasedFileErrorMessages.WRONG_EXT, extension
+    #     )
+    #     return
 
     if not is_excel(income_released_file_path):
-        get_income_released_error_message(IncomeReleasedFileErrorMessages.NOT_EXCEL)
+        get_income_released_error_message(
+            IncomeReleasedFileErrorMessages.NOT_EXCEL, extension
+        )
         return
 
     if not is_income_released_filename_correct(income_released_file):

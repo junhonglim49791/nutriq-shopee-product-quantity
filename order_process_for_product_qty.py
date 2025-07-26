@@ -96,7 +96,7 @@ def get_product_quantity(merged_order_completed):
     """
     natsort_func = natsort_keygen(alg=ns.IGNORECASE)
 
-    remove_underscore = lambda s: s.replace("_", "")
+    remove_non_alphabets = lambda s: re.sub(r"[^a-zA-Z0-9. ]", "", s)
 
     product_qty_df = (
         merged_order_completed.groupby(
@@ -114,7 +114,7 @@ def get_product_quantity(merged_order_completed):
                 "SKU Reference No.",
                 "Variation Name",
             ],
-            key=lambda x: x.map(remove_underscore).map(natsort_func),
+            key=lambda x: x.map(remove_non_alphabets).map(natsort_func),
         )
         .reset_index(drop=True)
     )

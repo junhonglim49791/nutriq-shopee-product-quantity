@@ -41,10 +41,9 @@ def is_income_released_filename_correct(filename):
 class IncomeReleasedFileErrorMessages(Enum):
     EMPTY_DIRECTORY = 1
     MORE_THAN_1FILE = 2
-    WRONG_EXT = 3
+    NOT_EXCEL = 3
     NOT_INCOME_RELEASED = 4
     INCOME_RELEASED_INCORRECT_RANGE = 5
-    NOT_EXCEL = 6
 
 
 def get_income_released_error_message(msg_type, current_file_extension=""):
@@ -57,17 +56,11 @@ def get_income_released_error_message(msg_type, current_file_extension=""):
             print_error_message_panel(main_msg, subtext)
             print_income_released_format_info()
 
-        case IncomeReleasedFileErrorMessages.WRONG_EXT:
-            main_msg = (
-                "Please make sure uploaded file is in [italic].xlsx[/italic] format."
-            )
+        case IncomeReleasedFileErrorMessages.NOT_EXCEL:
+            main_msg = "Please make sure to upload an uncorrupted or valid excel file in [italic].xlsx[/italic] format."
             subtext = f"Current file extension: {current_file_extension}"
             print_error_message_panel(main_msg, subtext)
             print_income_released_format_info()
-
-        case IncomeReleasedFileErrorMessages.NOT_EXCEL:
-            main_msg = "Please make sure to upload an [italic]uncorrupted or valid[/italic] excel file."
-            print_error_message_panel(main_msg)
 
         case IncomeReleasedFileErrorMessages.MORE_THAN_1FILE:
             main_msg = "Please make sure only [italic]ONE[/italic] file is in the [italic]income_released[/italic] folder."
