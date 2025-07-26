@@ -70,6 +70,7 @@ def print_income_released_date_range_error():
     )
 
 
+# Show which required Order.completed file is uploaded
 def print_order_completed_file_info(required_file_text):
     console.print(
         Panel(

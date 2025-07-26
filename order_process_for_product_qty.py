@@ -14,26 +14,27 @@ def get_order_completed_df(order_completed_filepath_list, income_released_order_
         order_completed_df = pd.read_excel(
             order_completed, sheet_name="orders", header=0
         )
-        """Only remove refunded orders in Order.completed excel file. Example:
+        """Only remove refunded orders in Order.completed excel file. Example (from May's income released):
             Order ID 2505065PU181Y4 has 2 items in Order.completed excel file:
                 COLD_PACK_STRAP	    Black Strap Only
                 COLD_PACK_6INCHES	Blue 6 Inches
             
             Say if COLD_PACK_STRAP is refunded, in the Income.released excel file, 2505065PU181Y4 will have a refund id. If this order id is removed because 
-            'refund id' column in Income.released, then wont be able to find the remaining orders in Order.completed.
+            'refund id' column in Income.released is not empty, then wont be able to find the remaining orders in Order.completed.
 
             Remove refunded orders in Order.completed, as each unique item with the same Order ID has different rows. Can safely remove the data rows which are
             refunded
-            """
+        """
+
+        # Only want to get product quantity for non-refunded orders, to decrease the stock count
         remove_refunded_orders_df = order_completed_df.loc[
             order_completed_df["Return / Refund Status"].isna()
         ]
 
+        # Only the the orders that are paid by shopee, in the Order.completed df
         released_order_completed_df = remove_refunded_orders_df[
             remove_refunded_orders_df["Order ID"].isin(income_released_order_ids)
         ]
-
-        # Cannot removed incomes_released_order_ids, it will affect order that has multiple items but one of them is refunded
 
         final_order_completed_df = released_order_completed_df[
             [
@@ -44,9 +45,11 @@ def get_order_completed_df(order_completed_filepath_list, income_released_order_
             ]
         ].copy()
 
+        # For debug purpose, can check whether different Order.completed files are properly merged
         final_order_completed_df["From"] = "_".join(
             re.findall(r"\d{8}", order_completed)
         )
+        # Avoid nan values affect the groupby.sum()
         final_order_completed_df["Variation Name"] = final_order_completed_df[
             "Variation Name"
         ].fillna("No Variant")
@@ -87,15 +90,16 @@ def get_product_quantity(merged_order_completed):
 
     this happens because in ASCII, "O" (79) which is smaller than "i" (105)
 
-    Why replace _ ?
+    Why remove _ ?
     For case like:
         MULTI100
         MULTI_30
 
-    The sort just don't work properly without removing underscore
+    The sort just don't work properly without removing underscore and other special characters.
     """
     natsort_func = natsort_keygen(alg=ns.IGNORECASE)
 
+    # Not removing "." as there might be decimal number. Said Black sport bandage 2.5, remove it will affect sorting result
     remove_non_alphabets = lambda s: re.sub(r"[^a-zA-Z0-9. ]", "", s)
 
     product_qty_df = (
@@ -118,7 +122,7 @@ def get_product_quantity(merged_order_completed):
         )
         .reset_index(drop=True)
     )
-
+    # Under same product name, remove duplicated SKU
     product_qty_df["SKU Reference No."] = product_qty_df.groupby(
         ["Product Name", "SKU Reference No."]
     )["SKU Reference No."].transform(lambda x: x.mask(x.duplicated()))
@@ -129,10 +133,12 @@ def get_product_quantity(merged_order_completed):
     return product_qty_df
 
 
+# Save the cell's format and width of the Order.completed excel file, to prevent the generated Product.quantity excel file has no format.
 def get_order_completed_format(any_order_completed_file_path):
     wb = load_workbook(any_order_completed_file_path)
     ws = wb.active
 
+    # letter key is the column alphabet in the Order.completed.excel file
     col_format = {
         "Product Name": {
             "letter": "M",
@@ -159,7 +165,8 @@ def get_order_completed_format(any_order_completed_file_path):
             "data_style": None,
         },
     }
-
+    # Use copy() for the format values if not this workbook is active only in this function, the cells are accessed by reference.
+    # After this function is executed, the reference is gone.
     for format in col_format.values():
         format["width"] = ws.column_dimensions[format["letter"]].width
         header_row = ws.cell(row=1, column=column_index_from_string(format["letter"]))
@@ -179,6 +186,7 @@ def get_order_completed_format(any_order_completed_file_path):
     return col_format
 
 
+# Generated a Product.quantity excel file based on the Income.released excel file
 def save_product_quantity(
     order_completed_format_dict, product_qty_df, income_released_filename
 ):
@@ -196,6 +204,7 @@ def save_product_quantity(
             "alignment"
         ]
 
+    # Draw a line for each unique product name, for better visual clarity if needed to be print
     cell_bottom_underline = Border(bottom=Side(style="thin"))
 
     for r_id, row_data_tuple in enumerate(
@@ -209,6 +218,17 @@ def save_product_quantity(
                 "alignment"
             ]
 
+            # Don't draw line when the next row of "Product Name" column is nan
+            """Example:  
+                        "Product Name"
+            row237      Fiber Drink.....
+            row238
+                            "Skip"     (No line Drawn because row 239 is empty)
+            row239
+                        "-------------"(row240 has value)
+            row240      FORA...
+            """
+
             if (
                 r_id <= len(product_qty_df)
                 and c_id == 1
@@ -218,12 +238,14 @@ def save_product_quantity(
 
             data_row.border = cell_bottom_underline
 
+    # Style for the last row, which shows the sums of all the product quantity
     light_blue_fill = PatternFill(fill_type="solid", fgColor="ADD8E6")
     bold_font = Font(bold=True)
     left_alignment = Alignment(horizontal="left")
 
     last_row = r_id + 1
 
+    # Only the first and the last column has value
     for cells in ws[f"A{last_row}:D{last_row}"]:
         for cell in cells:
             if cell.coordinate == f"A{last_row}":

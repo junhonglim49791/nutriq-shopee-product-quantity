@@ -21,7 +21,6 @@ from order import (
     is_order_completed_filename_correct,
     which_filename_is_correct,
     get_order_completed_error_message,
-    show_more_than_required_files_number,
 )
 
 from order_process_for_product_qty import (

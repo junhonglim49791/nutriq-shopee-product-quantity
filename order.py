@@ -24,8 +24,12 @@ def which_filename_is_correct(
     return sorted(list(required_file_exists.items()))
 
 
+# required_file_exists example: [("Order.completed.20241212_20241212.xlsx", True), ("Order.completed.20241216_20250114.xlsx", False)]
 def get_order_completed_error_message(required_file_exists, uploaded_files_number):
-
+    # if any False is found in required_file_exists, then print missing_file error message.
+    # in is_file_exist, True means there is a False in required_file_exists:
+    # required_file_exists -> (True, False)
+    # is_file_exist        -> (False, True) -> print error msg
     is_file_exist = [not t[1] for t in required_file_exists]
     missing_file = any(is_file_exist)
 
@@ -56,9 +60,3 @@ def get_order_completed_error_message(required_file_exists, uploaded_files_numbe
         )
 
     print_order_completed_file_info(required_file_text)
-
-
-def show_more_than_required_files_number(required_file_number):
-    main_msg = "Too many files are uploaded."
-    subtext = f"Please upload only [bold italic yellow]{required_file_number}[/bold italic yellow] file(s)"
-    print_error_message_panel(main_msg, subtext)
