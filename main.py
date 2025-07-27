@@ -56,6 +56,14 @@ def is_excel(path):
 def main():
 
     income_released_dir = "income_released"
+    order_completed_dir = "order_completed"
+
+    # let git upload the folders to github, so user doesn't have to create themselves to prevent incorrect naming
+    if os.path.exists(f"{income_released_dir}/.gitkeep"):
+        os.remove(f"{income_released_dir}/.gitkeep")
+
+    if os.path.exists(f"{order_completed_dir}/.gitkeep"):
+        os.remove(f"{order_completed_dir}/.gitkeep")
 
     if is_dir_empty(income_released_dir):
         get_income_released_error_message(
@@ -107,7 +115,6 @@ def main():
         unique_year_month_list
     )
 
-    order_completed_dir = "order_completed"
     all_files_order_completed_folder = get_all_files_in_a_dir(order_completed_dir)
     required_file_exists = which_filename_is_correct(
         all_files_order_completed_folder, required_completed_order_filenames
