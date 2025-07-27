@@ -1,5 +1,5 @@
 # <img src="readme_assets/shopee.png" width="30"> **Shopee Product Quantity Excel File**
-A Python script to calculate product quantities from Shopee orders that have been paid, for use in generating E-Invoices, which is a mandatory requirement for e-commerce sellers in Malaysia.
+test A Python script to calculate product quantities from Shopee orders that have been paid, for use in generating E-Invoices, which is a mandatory requirement for e-commerce sellers in Malaysia.
 
 ## 🎯 Purpose
 This script automates the counting of product quantities from Shopee's excel files. It replaces the manual use of pivot tables in Excel, helping to reduce human error and save man-hours. It's also part of my journey in applying Python to solve a problem in my part-time marketing job.
