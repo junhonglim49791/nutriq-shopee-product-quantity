@@ -39,7 +39,13 @@ This script automates the counting of product quantities from Shopee's excel fil
     > Ignore the `.gitkeep` file in _income_released_ and _order_completed_ as it will be removed if it exists. This file is only there to ensure Git keeps these two > empty folders, as they will be used by the user.
 
 2. **Upload `Order.completed` file(s):**  
-    Put your excel file(s) in the _order_completed_ folder and run the script again, using the command above, to generate `Product.quantity` excel file in _shopee-product-quantity_ folder
+    Put your excel file(s) in the _order_completed_ folder and run the script again, using the command above, to generate `Product.quantity` excel file in _shopee-product-quantity_ folder.
+
+3. **Copy `Product.quantity` file to Windows:**  
+   Open the file explorer in WSL:Ubuntu, then drag and drop to Windows.
+     ```bash
+    explorer.exe .
+    ```   
 
 ## 📝 Notes
 
