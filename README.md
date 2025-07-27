@@ -11,7 +11,7 @@ This script automates the counting of product quantities from Shopee's excel fil
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/junhonglim49791/shopee-product-quantity.git
+   git clone https://github.com/junhonglim49791/nutriq-shopee-product-quantity.git
    
    cd shopee-product-quantity
    ```  
