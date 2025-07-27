@@ -19,15 +19,16 @@ This script automates the counting of product quantities from Shopee's excel fil
     ```bash
     curl -Ls https://astral.sh/uv/install.sh | sh
     ```
-2. **Create a virtual environment:**  
+3. **Create a virtual environment (Optional):**  
     ```bash
     uv venv
     source .venv/bin/activate
     ```
-3. **Install dependencies:**
+4. **Install dependencies (Optional):**
     ```bash
-    uv pip install --locked
+    uv pip install -r pyproject.toml
     ```
+> Step 3 and step 4 becomes optional because `uv run` automatically create and update the project environment. Check [uv's documentation](https://docs.astral.sh/uv/reference/cli/#uv-run).
 
 ## 🛒 How to Get Product Quantity
 
