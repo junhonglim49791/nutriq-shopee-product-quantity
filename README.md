@@ -13,7 +13,7 @@ This script automates the counting of product quantities from Shopee's excel fil
    ```bash
    git clone https://github.com/junhonglim49791/nutriq-shopee-product-quantity.git
    
-   cd shopee-product-quantity
+   cd nutriq-shopee-product-quantity
    ```  
 2. **Install uv:**  
     ```bash
