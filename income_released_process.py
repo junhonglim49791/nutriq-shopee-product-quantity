@@ -1,6 +1,10 @@
 import pandas as pd
 
 from datetime import datetime, timedelta
+import warnings
+
+# Ignore UserWarning: Workbook contains no default style, apply openpyxl's default when the uploaded Income.released is not saved before after downloaded
+warnings.filterwarnings("ignore", category=UserWarning, module="openpyxl")
 
 # Original columns
 # MultiIndex([('Order Info', 'Unnamed: 0_level_1',          'Sequence No.'),

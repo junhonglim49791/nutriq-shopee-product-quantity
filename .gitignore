@@ -13,4 +13,4 @@ wheels/
 challenges.md
 checked/
 test_files/
-.xlsx
+*.xlsx

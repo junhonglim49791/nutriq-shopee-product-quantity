@@ -5,6 +5,8 @@ from copy import copy
 from openpyxl import load_workbook, Workbook
 from openpyxl.utils import get_column_letter, column_index_from_string
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
+from unidecode import unidecode
+import unicodedata
 
 
 def get_order_completed_df(order_completed_filepath_list, income_released_order_ids):
@@ -58,6 +60,13 @@ def get_order_completed_df(order_completed_filepath_list, income_released_order_
             final_order_completed_df["Quantity"]
         )
 
+        remove_style = lambda s: "".join(
+            unidecode(c) if re.fullmatch(r"[A-Za-z0-9]", unidecode(c)) else c for c in s
+        )
+        final_order_completed_df["Product Name"] = final_order_completed_df[
+            "Product Name"
+        ].map(remove_style)
+
         df_to_merge.append(final_order_completed_df)
 
     merged_order_completed = pd.concat(df_to_merge, ignore_index=True)
@@ -98,7 +107,6 @@ def get_product_quantity(merged_order_completed):
     The sort just don't work properly without removing underscore and other special characters.
     """
     natsort_func = natsort_keygen(alg=ns.IGNORECASE)
-
     # Not removing "." as there might be decimal number. Said Black sport bandage 2.5, remove it will affect sorting result
     remove_non_alphabets = lambda s: re.sub(r"[^a-zA-Z0-9. ]", "", s)
 
