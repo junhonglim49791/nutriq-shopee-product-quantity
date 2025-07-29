@@ -9,9 +9,7 @@ from income_released_process import (
 )
 
 from order import (
-    is_order_completed_filename_correct,
     which_filename_is_correct,
-    get_order_completed_error_message,
     order_completed_file_check,
 )
 
@@ -30,6 +28,7 @@ from print import (
 from folder_observer import (
     start_income_released_folder_monitoring,
     start_order_completed_folder_monitoring,
+    OrderCompletedFolderMonitorHandler,
 )
 
 
@@ -95,34 +94,26 @@ def main():
         unique_year_month_list
     )
 
-    # first time check order_completed/
-    all_files_order_completed_folder = get_all_files_in_a_dir(order_completed_dir)
-    required_file_exists = which_filename_is_correct(
-        all_files_order_completed_folder, required_completed_order_filenames
-    )
-
-    # Check whether the required amount and exact filenames of excel are uploaded
-
-    is_passed = order_completed_file_check(
-        all_files_order_completed_folder,
+    order_completed_file_handler = OrderCompletedFolderMonitorHandler(
+        order_completed_file_check,
+        order_completed_dir,
         required_completed_order_filenames,
-        required_file_exists,
+        file_valid_event,
     )
 
-    if is_passed:
+    if order_completed_file_handler.is_passed:
         file_valid_event.set()
 
     if not file_valid_event.is_set():
-        observer, handler = start_order_completed_folder_monitoring(
+        observer = start_order_completed_folder_monitoring(
+            order_completed_file_handler,
             order_completed_dir,
-            required_completed_order_filenames,
-            file_valid_event,
         )
         file_valid_event.wait()
-    if handler:
-        all_files_order_completed_folder = (
-            handler.get_all_files_order_completed_folder()
-        )
+
+    all_files_order_completed_folder = (
+        order_completed_file_handler.get_all_files_order_completed_folder()
+    )
 
     if observer:
         observer.stop()
