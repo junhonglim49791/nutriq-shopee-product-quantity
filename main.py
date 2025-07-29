@@ -1,11 +1,5 @@
 import os
-
-from income_released import (
-    get_income_released_error_message,
-    is_month_split_in_halves,
-    is_income_released_filename_correct,
-    IncomeReleasedFileErrorMessages,
-)
+from threading import Event
 
 from income_released_process import (
     get_processed_income_released_df,
@@ -18,6 +12,7 @@ from order import (
     is_order_completed_filename_correct,
     which_filename_is_correct,
     get_order_completed_error_message,
+    order_completed_file_check,
 )
 
 from order_process_for_product_qty import (
@@ -32,31 +27,25 @@ from print import (
     print_generated_product_qty_file,
 )
 
-
-def is_dir_empty(path):
-    return os.path.isdir(path) and len(os.listdir(path)) == 0
-
-
-def get_all_files_in_a_dir(dir):
-    all_files_order_completed_folder = [
-        file for file in os.listdir(dir) if os.path.isfile(os.path.join(dir, file))
-    ]
-    return all_files_order_completed_folder
+from folder_observer import (
+    start_income_released_folder_monitoring,
+    start_order_completed_folder_monitoring,
+)
 
 
-# Use excel's binary to check whether a file is in .xlsx format
-def is_excel(path):
-    with open(path, "rb") as f:
-        first_n_bytes = 4
-        excel_bytes = b"PK\x03\x04"
-        file_sig = f.read(first_n_bytes)
-        return file_sig == excel_bytes
+from income_released import income_released_file_checks, get_all_files_in_a_dir
+
+
+file_valid_event = Event()
 
 
 def main():
 
     income_released_dir = "income_released"
     order_completed_dir = "order_completed"
+    observer = None
+    handler = None
+    income_file_dict = {}
 
     # let git upload the folders to github, so user doesn't have to create themselves to prevent incorrect naming
     if os.path.exists(f"{income_released_dir}/.gitkeep"):
@@ -65,43 +54,34 @@ def main():
     if os.path.exists(f"{order_completed_dir}/.gitkeep"):
         os.remove(f"{order_completed_dir}/.gitkeep")
 
-    if is_dir_empty(income_released_dir):
-        get_income_released_error_message(
-            IncomeReleasedFileErrorMessages.EMPTY_DIRECTORY
+    # initial check
+    is_passed = income_released_file_checks(income_released_dir)[0]
+
+    if is_passed:
+        file_valid_event.set()
+        income_file_dict = income_released_file_checks(income_released_dir)[1]
+    if not file_valid_event.is_set():
+        observer, handler = start_income_released_folder_monitoring(
+            income_released_dir,
+            file_valid_event,
         )
-        return
+        file_valid_event.wait()
 
-    all_files_income_released_folder = get_all_files_in_a_dir(income_released_dir)
-    income_released_file = all_files_income_released_folder[0]
-    income_released_filename, extension = os.path.splitext(income_released_file)
-    income_released_file_path = os.path.join(income_released_dir, income_released_file)
+    if handler:
+        income_file_dict = handler.get_income_file_dict()
 
-    if len(all_files_income_released_folder) > 1:
-        get_income_released_error_message(
-            IncomeReleasedFileErrorMessages.MORE_THAN_1FILE
-        )
-        return
+    if observer:
+        observer.stop()
+        observer.join()
 
-    if not is_excel(income_released_file_path):
-        get_income_released_error_message(
-            IncomeReleasedFileErrorMessages.NOT_EXCEL, extension
-        )
-        return
+    file_valid_event.clear()
 
-    if not is_income_released_filename_correct(income_released_file):
-        get_income_released_error_message(
-            IncomeReleasedFileErrorMessages.NOT_INCOME_RELEASED,
-            income_released_filename,
-        )
-        return
-
-    # Evoice is done for every 2 weeks, so expecting the Income.released excel file also in the correct date range
-    if not is_month_split_in_halves(income_released_filename):
-        get_income_released_error_message(
-            IncomeReleasedFileErrorMessages.INCOME_RELEASED_INCORRECT_RANGE
-        )
-        return
-
+    all_files_income_released_folder = income_file_dict[
+        "all_files_income_released_folder"
+    ]
+    income_released_filename = income_file_dict["income_released_filename"]
+    income_released_file_path = income_file_dict["income_released_file_path"]
+    """Income.released file checks passed"""
     print_uploaded_file(all_files_income_released_folder)
 
     processed_income_released_df = get_processed_income_released_df(
@@ -115,20 +95,40 @@ def main():
         unique_year_month_list
     )
 
+    # first time check order_completed/
     all_files_order_completed_folder = get_all_files_in_a_dir(order_completed_dir)
     required_file_exists = which_filename_is_correct(
         all_files_order_completed_folder, required_completed_order_filenames
     )
 
     # Check whether the required amount and exact filenames of excel are uploaded
-    if not is_order_completed_filename_correct(
-        all_files_order_completed_folder, required_completed_order_filenames
-    ):
-        get_order_completed_error_message(
-            required_file_exists, len(all_files_order_completed_folder)
-        )
-        return
 
+    is_passed = order_completed_file_check(
+        all_files_order_completed_folder,
+        required_completed_order_filenames,
+        required_file_exists,
+    )
+
+    if is_passed:
+        file_valid_event.set()
+
+    if not file_valid_event.is_set():
+        observer, handler = start_order_completed_folder_monitoring(
+            order_completed_dir,
+            required_completed_order_filenames,
+            file_valid_event,
+        )
+        file_valid_event.wait()
+    if handler:
+        all_files_order_completed_folder = (
+            handler.get_all_files_order_completed_folder()
+        )
+
+    if observer:
+        observer.stop()
+        observer.join()
+
+    """Order.completed pass file check"""
     print_uploaded_file(all_files_order_completed_folder)
 
     completed_order_filepaths_list = [

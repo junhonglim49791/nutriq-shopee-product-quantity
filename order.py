@@ -60,3 +60,19 @@ def get_order_completed_error_message(required_file_exists, uploaded_files_numbe
         )
 
     print_order_completed_file_info(required_file_text)
+
+
+def order_completed_file_check(
+    all_files_order_completed_folder,
+    required_completed_order_filenames,
+    required_file_exists,
+):
+    if not is_order_completed_filename_correct(
+        all_files_order_completed_folder, required_completed_order_filenames
+    ):
+        get_order_completed_error_message(
+            required_file_exists, len(all_files_order_completed_folder)
+        )
+        return False
+
+    return True
