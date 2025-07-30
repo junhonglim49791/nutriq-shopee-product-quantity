@@ -1,9 +1,39 @@
 import textwrap
-
+import time
 from rich.console import Console
 from rich.panel import Panel
+from rich.live import Live
+from rich.spinner import Spinner
 
 console = Console()
+
+
+def waiting_for_user(event):
+    with console.status(
+        "[italic]Waiting for user to upload correct file......[underline]Press Ctrl+C[/underline] to exit[/italic]",
+        spinner="shark",
+        spinner_style="red",
+    ):
+        while not event.is_set():
+            time.sleep(1)
+
+
+# def waiting_for_user(event):
+#     console.file.flush()
+
+#     # Step 1: Panels already printed by get_income_released_error_message(...)
+#     # Do NOT print anything else here outside Live
+#     time.sleep(0.5)
+#     # Step 2: Create the spinner
+#     spinner = Spinner(
+#         "shark",
+#         text="[italic red]Waiting for user to upload correct file... Press Ctrl+C to exit[/italic red]",
+#     )
+
+#     # Step 3: Use Live for the spinner only, below the previously printed panels
+#     with Live(spinner, refresh_per_second=10, transient=False) as live:
+#         while not event.is_set():
+#             time.sleep(1)
 
 
 def print_error_message_panel(main_msg, subtext=""):
