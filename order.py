@@ -1,4 +1,7 @@
-from print import print_error_message_panel, print_order_completed_file_info
+from print import (
+    print_order_completed_error_message_panel,
+    print_order_completed_file_info,
+)
 
 
 # all_files_order_completed_folder -> list of filenames in order_completed/
@@ -47,7 +50,7 @@ def get_order_completed_error_message(required_file_exists, uploaded_files_numbe
         subtext = f"Please upload only [bold italic yellow]{len(required_file_exists)}[/bold italic yellow] file(s)"
 
     main_msg = missing_file_msg + too_many_files_msg
-    print_error_message_panel(main_msg, subtext)
+    print_order_completed_error_message_panel(main_msg, subtext)
 
     required_file_text = ""
     for index, (file, is_file_exist) in enumerate(required_file_exists):

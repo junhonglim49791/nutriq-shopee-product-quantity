@@ -5,9 +5,9 @@ import re
 import os
 
 from print import (
-    print_error_message_panel,
-    print_income_released_date_range_error,
-    print_income_released_format_info,
+    get_income_released_error_message_panel,
+    get_income_released_date_range_error,
+    get_income_released_format_info,
 )
 
 
@@ -75,41 +75,49 @@ def get_income_released_error_message(msg_type, current_file_extension=""):
                 "Please upload [italic]ONE[/italic] shopee income released excel file."
             )
             subtext = "income_released folder is empty."
-            print_error_message_panel(main_msg, subtext)
-            print_income_released_format_info()
+            error_panel = get_income_released_error_message_panel(main_msg, subtext)
+            info_panel = get_income_released_format_info()
+
+            return [error_panel, info_panel]
 
         case IncomeReleasedFileErrorMessages.NOT_EXCEL:
             main_msg = "Please make sure to upload an uncorrupted or valid excel file in [italic].xlsx[/italic] format."
             subtext = f"Current file extension: {current_file_extension}"
-            print_error_message_panel(main_msg, subtext)
-            print_income_released_format_info()
+            error_panel = get_income_released_error_message_panel(main_msg, subtext)
+            info_panel = get_income_released_format_info()
+
+            return [error_panel, info_panel]
 
         case IncomeReleasedFileErrorMessages.MORE_THAN_1FILE:
             main_msg = "Please make sure only [italic]ONE[/italic] file is in the [italic]income_released[/italic] folder."
             subtext = "Multiple files detected"
-            print_error_message_panel(main_msg, subtext)
+            error_panel = get_income_released_error_message_panel(main_msg, subtext)
+            return [error_panel]
 
         case IncomeReleasedFileErrorMessages.NOT_INCOME_RELEASED:
             main_msg = (
                 "This excel file is [italic]NOT[/italic] the shopee income excel file."
             )
             subtext = "Please upload the correct file."
-            print_error_message_panel(main_msg, subtext)
-            print_income_released_format_info()
+            error_panel = get_income_released_error_message_panel(main_msg, subtext)
+            info_panel = get_income_released_format_info()
+
+            return [error_panel, info_panel]
 
         case IncomeReleasedFileErrorMessages.INCOME_RELEASED_INCORRECT_RANGE:
             main_msg = "Please correct the [italic]range[/italic]."
             subtext = "Make sure the dates is within same year and month."
-            print_error_message_panel(main_msg, subtext)
-            print_income_released_date_range_error()
+            error_panel = get_income_released_error_message_panel(main_msg, subtext)
+            info_panel = get_income_released_date_range_error()
+            return [error_panel, info_panel]
 
 
 def income_released_file_checks(income_released_dir):
     if is_dir_empty(income_released_dir):
-        get_income_released_error_message(
+        error_panel_list = get_income_released_error_message(
             IncomeReleasedFileErrorMessages.EMPTY_DIRECTORY
         )
-        return (False,)
+        return (False, {"fail": error_panel_list})
 
     all_files_income_released_folder = get_all_files_in_a_dir(income_released_dir)
     income_released_file = all_files_income_released_folder[0]
@@ -117,36 +125,37 @@ def income_released_file_checks(income_released_dir):
     income_released_file_path = os.path.join(income_released_dir, income_released_file)
 
     if len(all_files_income_released_folder) > 1:
-        get_income_released_error_message(
+        error_panel_list = get_income_released_error_message(
             IncomeReleasedFileErrorMessages.MORE_THAN_1FILE
         )
-        return (False,)
+        return (False, {"fail": error_panel_list})
 
     if not is_excel(income_released_file_path):
-        get_income_released_error_message(
+        error_panel_list = get_income_released_error_message(
             IncomeReleasedFileErrorMessages.NOT_EXCEL, extension
         )
-        return (False,)
+        return (False, {"fail": error_panel_list})
 
     if not is_income_released_filename_correct(income_released_file):
-        get_income_released_error_message(
+        error_panel_list = get_income_released_error_message(
             IncomeReleasedFileErrorMessages.NOT_INCOME_RELEASED,
-            # income_released_filename,
         )
-        return (False,)
+        return (False, {"fail": error_panel_list})
 
     # Evoice is done for every 2 weeks, so expecting the Income.released excel file also in the correct date range
     if not is_month_split_in_halves(income_released_filename):
-        get_income_released_error_message(
+        error_panel_list = get_income_released_error_message(
             IncomeReleasedFileErrorMessages.INCOME_RELEASED_INCORRECT_RANGE
         )
-        return (False,)
+        return (False, {"fail": error_panel_list})
 
     return (
         True,
         {
-            "all_files_income_released_folder": all_files_income_released_folder,
-            "income_released_filename": income_released_filename,
-            "income_released_file_path": income_released_file_path,
+            "success": {
+                "all_files_income_released_folder": all_files_income_released_folder,
+                "income_released_filename": income_released_filename,
+                "income_released_file_path": income_released_file_path,
+            }
         },
     )

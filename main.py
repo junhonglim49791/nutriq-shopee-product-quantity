@@ -22,7 +22,10 @@ from order_process_for_product_qty import (
 from print import (
     print_uploaded_file,
     print_generated_product_qty_file,
-    waiting_for_user,
+    waiting_for_user_Live,
+    waiting_for_user_status,
+    income_released_error_panel,
+    console,
 )
 
 from folder_observer import (
@@ -33,9 +36,17 @@ from folder_observer import (
 
 
 from income_released import income_released_file_checks, get_all_files_in_a_dir
-
+from rich.live import Live
+from rich.panel import Panel
+from rich.spinner import Spinner
+import time
 
 file_valid_event = Event()
+
+# Create a panel containing just the spinner
+spinner_panel = Panel(
+    Spinner("dots", text="Processing...", style="green"), title="Status"
+)
 
 
 def main():
@@ -54,19 +65,20 @@ def main():
         os.remove(f"{order_completed_dir}/.gitkeep")
 
     # initial check
-    is_passed = income_released_file_checks(income_released_dir)[0]
+    is_passed, success_fail_dict = income_released_file_checks(income_released_dir)
 
     if is_passed:
         file_valid_event.set()
-        income_file_dict = income_released_file_checks(income_released_dir)[1]
+        income_file_dict = success_fail_dict["success"]
 
     if not file_valid_event.is_set():
         observer, handler = start_income_released_folder_monitoring(
             income_released_dir,
             file_valid_event,
         )
-
-    waiting_for_user(file_valid_event)
+        error_panel_list = success_fail_dict["fail"]
+        income_released_error_panel.set_income_released_error_panel(error_panel_list)
+        waiting_for_user_Live(file_valid_event)
 
     if handler:
         income_file_dict = handler.get_income_file_dict()
@@ -112,7 +124,7 @@ def main():
             order_completed_dir,
         )
 
-    waiting_for_user(file_valid_event)
+        waiting_for_user_status(file_valid_event)
 
     all_files_order_completed_folder = (
         order_completed_file_handler.get_all_files_order_completed_folder()
