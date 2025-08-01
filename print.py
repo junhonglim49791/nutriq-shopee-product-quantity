@@ -146,7 +146,8 @@ def waiting_for_user_status(event):
                 spinner="shark",
                 spinner_style="red",
             ):
-                while console.size.width >= previous_width:
+                # if not event.is_set() is not here, cant exit console.status() when the event is set in the file handler
+                while not event.is_set() and console.size.width >= previous_width:
                     sleep(0.5)
 
 

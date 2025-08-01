@@ -1,8 +1,15 @@
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from income_released import income_released_file_checks, get_all_files_in_a_dir
-from order import order_completed_file_check, which_filename_is_correct
-from print import income_released_error_panel, console
+from order import which_filename_is_correct
+from print import income_released_error_panel
+
+"""Difference between IncomeReleasedHandler and OrderCompletedHandler
+1. Income.released filechecks first happened in main(), then only the observer and handler objects are created
+   Order.completed filechecks first happened in OrderCompletedHandler's constructor, which the handler obj is created in main()
+2. Income.released filechecks return list of Panels to print with Live.display, where Order.completed filechecks still do normal console.print() ]with 
+   console.status
+"""
 
 
 class IncomeReleasedFolderMonitorHandler(FileSystemEventHandler):
@@ -16,8 +23,6 @@ class IncomeReleasedFolderMonitorHandler(FileSystemEventHandler):
         self.income_released_dir = income_released_dir
         self.income_released_file_valid_event = income_released_file_valid_event
         self.income_file_dict = {}
-        self.error_panel = None
-        self.info_panel = None
 
     def on_any_event(self, event):
         if not event.is_directory and event.event_type in (
