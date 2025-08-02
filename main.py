@@ -25,7 +25,6 @@ from print import (
     waiting_for_user_Live,
     waiting_for_user_status,
     income_released_error_panel,
-    console,
 )
 
 from folder_observer import (
@@ -34,19 +33,10 @@ from folder_observer import (
     OrderCompletedFolderMonitorHandler,
 )
 
+from income_released import income_released_file_checks
 
-from income_released import income_released_file_checks, get_all_files_in_a_dir
-from rich.live import Live
-from rich.panel import Panel
-from rich.spinner import Spinner
-import time
 
 file_valid_event = Event()
-
-# Create a panel containing just the spinner
-spinner_panel = Panel(
-    Spinner("dots", text="Processing...", style="green"), title="Status"
-)
 
 
 def main():
@@ -94,6 +84,7 @@ def main():
     ]
     income_released_filename = income_file_dict["income_released_filename"]
     income_released_file_path = income_file_dict["income_released_file_path"]
+
     """Income.released file checks passed"""
     print_uploaded_file(all_files_income_released_folder)
 

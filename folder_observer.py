@@ -7,7 +7,7 @@ from print import income_released_error_panel
 """Difference between IncomeReleasedHandler and OrderCompletedHandler
 1. Income.released filechecks first happened in main(), then only the observer and handler objects are created
    Order.completed filechecks first happened in OrderCompletedHandler's constructor, which the handler obj is created in main()
-2. Income.released filechecks return list of Panels to print with Live.display, where Order.completed filechecks still do normal console.print() ]with 
+2. Income.released filechecks return list of Panels to print with Live.display, where Order.completed filechecks still do console.print() with 
    console.status
 """
 

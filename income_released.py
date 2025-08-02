@@ -112,6 +112,7 @@ def get_income_released_error_message(msg_type, current_file_extension=""):
             return [error_panel, info_panel]
 
 
+# Return erro Panels now to make Live.display consistent
 def income_released_file_checks(income_released_dir):
     if is_dir_empty(income_released_dir):
         error_panel_list = get_income_released_error_message(

@@ -1,20 +1,19 @@
 import textwrap
+from time import sleep
+from itertools import cycle
+
 from rich.console import Console, Group
 from rich.panel import Panel
 from rich.live import Live
 from rich.spinner import Spinner
-from rich.table import Table
 from rich.align import Align
-from rich.text import Text
-from rich.table import Table
 from rich.columns import Columns
-from time import sleep
 from rich.measure import Measurement
-from itertools import cycle
 
 console = Console()
 
 
+# Generate the Spinners dynamically on the left and right side of center text when user resizes the terminal
 def generate_loading_panel():
     center_text = (
         " [italic]Waiting for user to upload[/] ———— [underline]Ctrl+C[/] to quit"
@@ -25,7 +24,7 @@ def generate_loading_panel():
     NUMBER_OF_SIDES = 2
     each_side_space_for_spinners = remaining_space_for_spinners // NUMBER_OF_SIDES
 
-    # 1 for the icon 1 for left+right spacing in Columns
+    # 1 space for the icon 1 space for left+right in Columns
     EACH_SPINNER_OCCUPIES_SPACE = 2
     how_many_spinners_each_side = (
         each_side_space_for_spinners // EACH_SPINNER_OCCUPIES_SPACE
@@ -56,6 +55,7 @@ def generate_loading_panel():
     return wait_user_upload_panel
 
 
+# to get the list[Panel] from the IncomeFolderHandler after calling the income_released_file_checks()
 class IncomeReleasedErrorsPanel:
     def __init__(self):
         self.renderables = []
@@ -67,6 +67,7 @@ class IncomeReleasedErrorsPanel:
 income_released_error_panel = IncomeReleasedErrorsPanel()
 
 
+# Take control of the terminal and print all the renderables together, to solve the issues of bad looking outputs when terminal is resized
 def waiting_for_user_Live(event):
     with Live(
         Group(*income_released_error_panel.renderables, generate_loading_panel()),
@@ -83,7 +84,7 @@ def waiting_for_user_Live(event):
 
 
 # # easier but doesnt handle resizes, when the terminal is smaller than current Panel, leftover Panels will appear
-# def easier_waiting_for_user_Live(event):
+# def waiting_for_user_Live(event):
 #     with Live(
 #         loading_panel,
 #         console=console,
@@ -93,6 +94,26 @@ def waiting_for_user_Live(event):
 #         event.wait()
 
 
+"""
+this is still not as good as Live.display, but still better than just using even.wait(). If not more Status lines would be printed when
+terminal sizes is smaller than console.status(). Also the printed Panels will misaligned. The solution below at least hide the misalignment
+and significantly lower the amount of Status lines printed"""
+
+"""Problems when terminal size shrinks when running the script:
+1. When terminal size shrinks, the Panels will be misaligned.
+2. console.status would be printed every line whenever the terminal is shorter than the status's message (in fast succession or terminal's width
+is very close to the status message's length)
+"""
+# def waiting_for_user_status(event):
+#     with console.status(
+#         "[italic]Waiting for user to upload correct Order.completed......[underline]Press Ctrl+C[/underline] to exit[/italic]",
+#         spinner="shark",
+#         spinner_style="red",
+#     ):
+#         event.wait()
+
+
+# Another way of keeping the output consistent is to alert user when terminal is resizing
 def show_terminal_shrinking_warning(previous_width):
     with console.screen():
         print_order_completed_error_message_panel(
@@ -103,55 +124,44 @@ def show_terminal_shrinking_warning(previous_width):
             sleep(0.5)
 
 
-# console.status inside the while loop to avoid using status.start() after .stop(), console.status will move up and "eat" the previous output, if the shrinking speed of terminal
-# is fast (small to big size)
-# def waiting_for_user_status(event):
-#     previous_width = console.size.width
-#     with console.status(
-#         "[italic]Waiting for user to upload correct Order.completed......[underline]Press Ctrl+C[/underline] to exit[/italic]",
-#         spinner="shark",
-#         spinner_style="red",
-#     ) as status:
-#         while not event.is_set():
-
-#             if console.size.width < previous_width:
-#                 status.stop()
-#                 show_terminal_shrinking_warning(previous_width)
-#                 status.start()
-
-
-# this is still not as good as Live.display, but still better than just using even.wait(). If not the more Status lines would be printed when terminal sizes changes from small to big.
-# Also the printed Panel will misaligned. The solution below at least hide the misalignment and significantly lower the amount of Status lines printed.
-"""def waiting_for_user_status(event):
+def waiting_for_user_status(event):
+    previous_width = console.size.width
     with console.status(
         "[italic]Waiting for user to upload correct Order.completed......[underline]Press Ctrl+C[/underline] to exit[/italic]",
         spinner="shark",
         spinner_style="red",
-    ):
-        event.wait()
+    ) as status:
+        while not event.is_set():
+            if console.size.width < previous_width:
+                status.stop()
+                show_terminal_shrinking_warning(previous_width)
+                status.start()
+        sleep(0.5)
+
+
+"""Previosly when using status.stop() and status.start(), the previous terminal output will be "eaten" by status, cant replicate that 
+situation consistenly, keeping another function below just in case
 """
+# def waiting_for_user_status(event):
+#     previous_width = console.size.width
+
+#     while not event.is_set():
+#         current_width = console.size.width
+
+#         if current_width < previous_width:
+#             show_terminal_shrinking_warning(previous_width)
+#         else:
+#             with console.status(
+#                 "[italic]Waiting for user to upload correct Order.completed......[underline]Press Ctrl+C[/underline] to exit[/italic]",
+#                 spinner="shark",
+#                 spinner_style="red",
+#             ):
+#                 # if not event.is_set() is not here, cant exit console.status() when the event is set in the file handler
+#                 while not event.is_set() and console.size.width >= previous_width:
+#                     sleep(0.5)
 
 
-def waiting_for_user_status(event):
-    previous_width = console.size.width
-
-    while not event.is_set():
-        current_width = console.size.width
-
-        if current_width < previous_width:
-            show_terminal_shrinking_warning(previous_width)
-        else:
-            with console.status(
-                "[italic]Waiting for user to upload correct Order.completed......[underline]Press Ctrl+C[/underline] to exit[/italic]",
-                spinner="shark",
-                spinner_style="red",
-            ):
-                # if not event.is_set() is not here, cant exit console.status() when the event is set in the file handler
-                while not event.is_set() and console.size.width >= previous_width:
-                    sleep(0.5)
-
-
-# print_order_completed_error_message_panel print Panels but this one returns a Panel, testing purposes
+# print_order_completed_error_message_panel print Panels but this one returns a Panel, for Live.display
 def get_income_released_error_message_panel(main_msg, subtext=""):
     panel = Panel(
         f"[bold yellow]⚠️  {main_msg}[/bold yellow] {subtext}",
@@ -159,7 +169,6 @@ def get_income_released_error_message_panel(main_msg, subtext=""):
         border_style="yellow",
         expand=True,
     )
-    # console.print(panel)
     return panel
 
 
@@ -175,7 +184,6 @@ def get_income_released_format_info():
         border_style="cyan",
         expand=True,
     )
-    # console.print(panel)
     return panel
 
 
@@ -227,6 +235,7 @@ def print_order_completed_file_info(required_file_text):
     )
 
 
+# Previously order_completed and income_released share this function, but income_released changes to return Panel
 def print_order_completed_error_message_panel(main_msg, subtext=""):
     panel = Panel(
         f"[bold yellow]⚠️  {main_msg}[/bold yellow] {subtext}",
