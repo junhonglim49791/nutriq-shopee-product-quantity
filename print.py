@@ -114,14 +114,83 @@ is very close to the status message's length)
 
 
 # Another way of keeping the output consistent is to alert user when terminal is resizing
-def show_terminal_shrinking_warning(previous_width):
+"""2 ways to solve the status message eating previous output:
+1. status.stop() and status.start() in show_terminal_shrinking_warning(). 
+2. call status only when condition is met, like the 2nd function waiting_for_user_status(event) given below 
+
+To explain 1.:
+
+    Whenever status or screen use Live.display, after the context, it will removed itself
+    Normal output:
+        ---------------------Original terminal size---------------------
+    1   ╭──────────────────────────── Info ────────────────────────────╮
+    2   │ Order.completed.20250426_20250426.xlsx..........❌           │
+    3   │ Order.completed.20250501_20250530.xlsx..........✅           │
+    4   ╰──────────────────────────────────────────────────────────────╯
+    5   ▐________/|____▌ Waiting for user to upload correct Order.completed......Press Ctrl+C to exit
+
+    Say after status (5) is resolved, then it becomes 4 lines left, the next output can continue on line 5:
+        ---------------------Original terminal size---------------------
+    1   ╭──────────────────────────── Info ────────────────────────────╮
+    2   │ Order.completed.20250426_20250426.xlsx..........❌           │
+    3   │ Order.completed.20250501_20250530.xlsx..........✅           │
+    4   ╰──────────────────────────────────────────────────────────────╯
+    5 <----- continues here
+
+    If i do,
+        status.stop()
+        if console.size.width < previous_width:
+            show_terminal_shrinking_warning(previous_width)
+        status.start()
+        console.screen() should knows to continues on line 5, but that console.status continues on line 4
+
+        ---------------------Original terminal size---------------------
+    1   ╭──────────────────────────── Info ────────────────────────────╮
+    2   │ Order.completed.20250426_20250426.xlsx..........❌           │
+    3   │ Order.completed.20250501_20250530.xlsx..........✅           │
+    4   ▐________/|____▌ Waiting for user to upload correct Order.comple
+        ted......Press Ctrl+C to exit
+
+    everytime i shrink the terminal when the status message is already wrapping (terminal shorter), then pull back to original or bigger size, 
+    1 line would be eaten. i have no idea why.
+
+    compensate this by getting the console.screen() first then status.stop(), hypothesis:
+        If 1 line will be eaten then use console.screen to get to line 6, and status.stop() at line 5, after 6 is done, status.start() go back to 5
+        ---------------------Original terminal size---------------------
+    1   ╭──────────────────────────── Info ────────────────────────────╮
+    2   │ Order.completed.20250426_20250426.xlsx..........❌           │
+    3   │ Order.completed.20250501_20250530.xlsx..........✅           │
+    4   ╰──────────────────────────────────────────────────────────────╯
+    5   ▐________/|____▌ Waiting for user to upload correct Order.completed......Press Ctrl+C to exit
+    6   ╭────────────────────────────────────────────────────────────────────────────── WARNING ─────────────────────────────────╮
+        │ ⚠️  Terminal is shrinking!!! This will affect the visuals, please use the original or bigger size                      |
+        ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+    If the panel ended up in line 5, then status.start() goes to line 4
+
+            ---------------------Original terminal size---------------------
+    1   ╭──────────────────────────── Info ────────────────────────────╮
+    2   │ Order.completed.20250426_20250426.xlsx..........❌           │
+    3   │ Order.completed.20250501_20250530.xlsx..........✅           │
+    4   ╰──────────────────────────────────────────────────────────────╯
+    5   ╭────────────────────────────────────────────────────────────────────────────── WARNING ─────────────────────────────────╮
+        │ ⚠️  Terminal is shrinking!!! This will affect the visuals, please use the original or bigger size                      |
+        ╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+"""
+
+
+def show_terminal_shrinking_warning(status, previous_width):
+    status.stop()
     with console.screen():
+
         print_order_completed_error_message_panel(
             main_msg="Terminal is shrinking!!!",
             subtext="This will affect the visuals, please use the original or bigger size",
         )
         while console.size.width < previous_width:
             sleep(0.5)
+
+    status.start()
 
 
 def waiting_for_user_status(event):
@@ -132,16 +201,18 @@ def waiting_for_user_status(event):
         spinner_style="red",
     ) as status:
         while not event.is_set():
+
             if console.size.width < previous_width:
-                status.stop()
-                show_terminal_shrinking_warning(previous_width)
-                status.start()
-        sleep(0.5)
+                show_terminal_shrinking_warning(status, previous_width)
+            sleep(0.5)
 
 
 """Previosly when using status.stop() and status.start(), the previous terminal output will be "eaten" by status, cant replicate that 
-situation consistenly, keeping another function below just in case
+situation consistenly, keeping another function below just in case. I found that when the "eating" problem occus, do a clear in command
+line and it works normally again with above function.
 """
+
+
 # def waiting_for_user_status(event):
 #     previous_width = console.size.width
 
