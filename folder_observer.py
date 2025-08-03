@@ -1,13 +1,15 @@
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer  # type: ignore
+from watchdog.events import FileSystemEventHandler  # type: ignore
 from income_released import income_released_file_checks, get_all_files_in_a_dir
 from order import which_filename_is_correct
 from print import income_released_error_panel
+from threading import Thread, Lock
+from time import sleep, time
 
 """Difference between IncomeReleasedHandler and OrderCompletedHandler
 1. Income.released filechecks first happened in main(), then only the observer and handler objects are created
    Order.completed filechecks first happened in OrderCompletedHandler's constructor, which the handler obj is created in main()
-2. Income.released filechecks return list of Panels to print with Live.display, where Order.completed filechecks still do console.print() with 
+2. Income.released filechecks return list of Panels to clear with Live.display, where Order.completed filechecks still do console.print() with 
    console.status
 """
 
@@ -68,6 +70,11 @@ class OrderCompletedFolderMonitorHandler(FileSystemEventHandler):
         required_completed_order_filenames,
         order_completed_file_valid_event,
     ):
+        # self.debounce_timer = 2
+        # self.last_event_time = time()
+        # self.lock = Lock()
+        # self.debounce_thread = Thread(target=self._on_debounce, daemon=True)
+        # self.debounce_thread.start()
         self.file_check_callback = file_check_callback
         self.required_completed_order_filenames = required_completed_order_filenames
         self.order_completed_dir = order_completed_dir
@@ -78,6 +85,7 @@ class OrderCompletedFolderMonitorHandler(FileSystemEventHandler):
         self.all_files_order_completed_folder = get_all_files_in_a_dir(
             self.order_completed_dir
         )
+
         self.required_file_exists = which_filename_is_correct(
             self.all_files_order_completed_folder,
             self.required_completed_order_filenames,
@@ -91,13 +99,35 @@ class OrderCompletedFolderMonitorHandler(FileSystemEventHandler):
 
         return is_passed
 
+    # def _on_debounce(self):
+    #     print("debounce starts")
+    #     while True:
+    #         sleep(0.5)
+    #         time_passed = time() - self.last_event_time
+    #         if time_passed > self.debounce_timer:
+    #             if self.is_filecheck_passed():
+    #                 self.order_completed_file_valid_event.set()
+    #             with self.lock:
+    #                 self.last_event_time = time() + 9999
+
+    # def on_any_event(self, event):
+    #     if not event.is_directory and event.event_type in (
+    #         "deleted",
+    #         "moved",
+    #         "created",
+    #     ):
+    #         with self.lock:
+    #             self.last_event_time = time()
+
+    # This run multiple checkes for every "deleted" and "created" events
     def on_any_event(self, event):
         if not event.is_directory and event.event_type in (
-            "created",
             "deleted",
             "moved",
+            "created",
         ):
-            self.is_passed = self.is_filecheck_passed()
+            if not self.order_completed_file_valid_event.is_set():
+                self.is_passed = self.is_filecheck_passed()
             if self.is_passed:
                 self.order_completed_file_valid_event.set()
 
