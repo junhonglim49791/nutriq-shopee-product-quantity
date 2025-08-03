@@ -106,8 +106,8 @@ def main():
         file_valid_event,
     )
 
-    if order_completed_file_handler.is_passed:
-        file_valid_event.set()
+    # if order_completed_file_handler.is_passed:
+    #     file_valid_event.set()
 
     if not file_valid_event.is_set():
         observer = start_order_completed_folder_monitoring(

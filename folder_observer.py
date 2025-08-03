@@ -70,16 +70,15 @@ class OrderCompletedFolderMonitorHandler(FileSystemEventHandler):
         required_completed_order_filenames,
         order_completed_file_valid_event,
     ):
-        # self.debounce_timer = 2
-        # self.last_event_time = time()
-        # self.lock = Lock()
-        # self.debounce_thread = Thread(target=self._on_debounce, daemon=True)
-        # self.debounce_thread.start()
+        self.debounce_timer = 0.5
+        self.last_event_time = time()
+        self.lock = Lock()
+        self.debounce_thread = Thread(target=self._on_debounce, daemon=True)
+        self.debounce_thread.start()
         self.file_check_callback = file_check_callback
         self.required_completed_order_filenames = required_completed_order_filenames
         self.order_completed_dir = order_completed_dir
         self.order_completed_file_valid_event = order_completed_file_valid_event
-        self.is_passed = self.is_filecheck_passed()
 
     def is_filecheck_passed(self):
         self.all_files_order_completed_folder = get_all_files_in_a_dir(
@@ -99,37 +98,36 @@ class OrderCompletedFolderMonitorHandler(FileSystemEventHandler):
 
         return is_passed
 
-    # def _on_debounce(self):
-    #     print("debounce starts")
-    #     while True:
-    #         sleep(0.5)
-    #         time_passed = time() - self.last_event_time
-    #         if time_passed > self.debounce_timer:
-    #             if self.is_filecheck_passed():
-    #                 self.order_completed_file_valid_event.set()
-    #             with self.lock:
-    #                 self.last_event_time = time() + 9999
+    def _on_debounce(self):
+        while True:
+            sleep(0.5)
+            time_passed = time() - self.last_event_time
+            if time_passed > self.debounce_timer:
+                if self.is_filecheck_passed():
+                    self.order_completed_file_valid_event.set()
+                with self.lock:
+                    self.last_event_time = time() + 9999
 
-    # def on_any_event(self, event):
-    #     if not event.is_directory and event.event_type in (
-    #         "deleted",
-    #         "moved",
-    #         "created",
-    #     ):
-    #         with self.lock:
-    #             self.last_event_time = time()
-
-    # This run multiple checkes for every "deleted" and "created" events
     def on_any_event(self, event):
         if not event.is_directory and event.event_type in (
             "deleted",
             "moved",
             "created",
         ):
-            if not self.order_completed_file_valid_event.is_set():
-                self.is_passed = self.is_filecheck_passed()
-            if self.is_passed:
-                self.order_completed_file_valid_event.set()
+            with self.lock:
+                self.last_event_time = time()
+
+    # This run multiple checkes for every "deleted" and "created" events
+    # def on_any_event(self, event):
+    #     if not event.is_directory and event.event_type in (
+    #         "deleted",
+    #         "moved",
+    #         "created",
+    #     ):
+    #         if not self.order_completed_file_valid_event.is_set():
+    #             self.is_passed = self.is_filecheck_passed()
+    #         if self.is_passed:
+    #             self.order_completed_file_valid_event.set()
 
     def get_all_files_order_completed_folder(self):
         return self.all_files_order_completed_folder
