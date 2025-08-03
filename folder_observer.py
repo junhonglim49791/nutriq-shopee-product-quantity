@@ -13,6 +13,11 @@ from time import sleep, time
    console.status
 """
 
+"""Using debounce timer basic, without file size detection. As the events on 'created' and 'deleted' is fast
+Every file created or removed from a directory will trigger 1 on_any_event(). Using a new thread to run in the background after the debounce timer. This
+ensures all files are created or deleted before running file checks. Currently sleep(0.5) is enough  
+"""
+
 
 class IncomeReleasedFolderMonitorHandler(FileSystemEventHandler):
     def __init__(
@@ -21,10 +26,33 @@ class IncomeReleasedFolderMonitorHandler(FileSystemEventHandler):
         income_released_dir,
         income_released_file_valid_event,
     ):
+        self.debounce_timer = 0.5
+        self.last_event_time = time()
+        self.lock = Lock()
+        self.debounce_thread = Thread(target=self._on_debounce, daemon=True)
+        self.debounce_thread.start()
         self.file_check_callback = file_check_callback
         self.income_released_dir = income_released_dir
         self.income_released_file_valid_event = income_released_file_valid_event
         self.income_file_dict = {}
+
+    def _on_debounce(self):
+        while True:
+            sleep(0.5)
+            time_passed = time() - self.last_event_time
+            if time_passed > self.debounce_timer:
+                is_passed, success_fail_dict = self.file_check_callback(
+                    self.income_released_dir
+                )
+                if is_passed:
+                    self.income_file_dict = success_fail_dict["success"]
+                    self.income_released_file_valid_event.set()
+                else:
+                    income_released_error_panel.set_income_released_error_panel(
+                        success_fail_dict["fail"]
+                    )
+                with self.lock:
+                    self.last_event_time = time() + 9999
 
     def on_any_event(self, event):
         if not event.is_directory and event.event_type in (
@@ -32,16 +60,8 @@ class IncomeReleasedFolderMonitorHandler(FileSystemEventHandler):
             "deleted",
             "moved",
         ):
-            is_passed, success_fail_dict = self.file_check_callback(
-                self.income_released_dir
-            )
-            if is_passed:
-                self.income_file_dict = success_fail_dict["success"]
-                self.income_released_file_valid_event.set()
-            else:
-                income_released_error_panel.set_income_released_error_panel(
-                    success_fail_dict["fail"]
-                )
+            with self.lock:
+                self.last_event_time = time()
 
     def get_income_file_dict(self):
         return self.income_file_dict

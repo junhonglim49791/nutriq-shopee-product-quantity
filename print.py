@@ -180,8 +180,8 @@ To explain 1.:
 
 
 def show_terminal_shrinking_warning(status, previous_width):
-    status.stop()
     with console.screen():
+        status.stop()
 
         print_order_completed_error_message_panel(
             main_msg="Terminal is shrinking!!!",
