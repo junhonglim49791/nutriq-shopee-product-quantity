@@ -59,29 +59,29 @@ This script automates the counting of product quantities from Shopee's excel fil
 ## 📝 Notes
 - ✅ Shopee's Order.Completed excel file has certian bold styles on 'Product Name' column, which causes duplicate issues and messes sorting in Excel's Pivot Table.
   
-<img src="readme_assets/excel_style_duplicates.jpg">  
+    <img src="readme_assets/excel_style_duplicates.jpg">  
 
 ---
-- ✅ Resizing the terminal might cause the rich's Panel outline to be "eaten"
+- ✅ Resizing the terminal might cause the rich's Panel outline to be "eaten"  
   - Before:   
-<p align="center">
-    <img src="readme_assets/Order.completed-eating-output.gif" alt="Eating previous output"/>
-    <br>
-    <strong><em>Eating previous output</em></strong>
-</p>
+    <p align="center">
+        <img src="readme_assets/Order.completed-eating-output.gif" alt="Eating previous output"/>
+        <br>
+        <strong><em>Eating previous output</em></strong>
+    </p>
 
   - After:
-<p align="center">
-    <img src="readme_assets/Order.completed-resizes.gif" alt="Order Completed Error Message Panel"/>
-    <br>
-    <strong><em>Order Completed Error Message Panel</em></strong>
-</p>
-<br>
-<p align="center">
-    <img src="readme_assets/Income.released-Live.display-resizes.gif" alt="Income Released Error Message Panel"/>
-    <br>
-    <strong><em>Income Released Error Message Panel</em></strong>
-</p>
+    <p align="center">
+        <img src="readme_assets/Order.completed-resizes.gif" alt="Order Completed Error Message Panel"/>
+        <br>
+        <strong><em>Order Completed Error Message Panel</em></strong>
+    </p>
+    <p align="center">
+        <br>
+        <img src="readme_assets/Income.released-Live.display-resizes.gif" alt="Income Released Error Message Panel"/>
+        <br>
+        <strong><em>Income Released Error Message Panel</em></strong>
+    </p>
 
 ***
 
